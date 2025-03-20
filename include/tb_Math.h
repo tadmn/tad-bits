@@ -8,7 +8,7 @@ template <typename T>
   assert(value >= inMin && value <= inMax);
   value = (value - inMin) / (inMax - inMin);
   assert(value >= static_cast<T>(0) && value <= static_cast<T>(1));
-  return value;
+  return (value - inMin) / (inMax - inMin);
 }
 
 }
