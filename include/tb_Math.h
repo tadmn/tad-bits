@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include <cmath>
+#include <sys/stat.h>
+
 namespace tb {
 
 template<typename T>
@@ -19,6 +22,17 @@ template<typename T>
     value = (value - inMin) / (inMax - inMin);
     assert(is0to1(value));
     return value;
+}
+
+template<typename T>
+[[nodiscard]] T closestPowerOf2(T input) {
+    if (input <= static_cast<T>(0))
+        return static_cast<T>(1);
+
+    const auto floorPow2 = std::pow(static_cast<T>(2), std::floor(std::log2(input)));
+    const auto ceilingPow2 = std::pow(static_cast<T>(2), std::ceil(std::log2(input)));
+
+    return (input - floorPow2 <= ceilingPow2 - input) ? floorPow2 : ceilingPow2;
 }
 
 }
