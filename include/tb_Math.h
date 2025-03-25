@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cmath>
-#include <sys/stat.h>
 
 namespace tb {
 
