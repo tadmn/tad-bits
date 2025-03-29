@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "tb_Point.h"
+#include "tb_Geometry.h"
 
 #include <vector>
 #include <cassert>
