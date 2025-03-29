@@ -1,27 +1,44 @@
 
 #pragma once
 
-#include <math.h>
+#include <cmath>
 #include <vector>
+#include <concepts>
 
 namespace tb {
 
-enum class Window {
-  Hann
+enum class WindowType {
+    Hann,
+    BlackmanHarris,
+    Hamming
 };
 
-std::vector<float> window(Window windowType, int size) {
-  std::vector<float> window(size, 0);
-  window.shrink_to_fit();
+template <std::floating_point T>
+std::vector<T> window(WindowType windowType, int size) {
+    std::vector<T> window(size, 0);
 
-  if (windowType == Window::Hann) {
-    for (size_t i = 0; i < window.size(); ++i)
-      window[i] = 0.5 - std::cos((2.0 * i * M_PI) / (window.size() - 1)) / 2;
-  } else {
-    assert(false);
-  }
+    if (windowType == WindowType::Hann) {
+        for (size_t i = 0; i < window.size(); ++i)
+            window[i] = static_cast<T>(0.5 - std::cos((2.0 * i * M_PI) / (window.size() - 1)) / 2);
+    } else if (windowType == WindowType::BlackmanHarris) {
+        constexpr T a0 = 0.35875;
+        constexpr T a1 = 0.48829;
+        constexpr T a2 = 0.14128;
+        constexpr T a3 = 0.01168;
 
-  return window;
+        for (size_t i = 0; i < window.size(); ++i) {
+            const auto x = i / static_cast<double>(window.size() - 1);
+            window[i] = static_cast<T>(a0 - a1 * std::cos(2.0 * M_PI * x) + a2 * std::cos(4.0 * M_PI * x) -
+                        a3 * std::cos(6.0 * M_PI * x));
+        }
+    } else if (windowType == WindowType::Hamming) {
+        for (size_t i = 0; i < window.size(); ++i)
+            window[i] = static_cast<T>(0.54 - 0.46 * std::cos((2.0 * i * M_PI) / (window.size() - 1)));
+    } else {
+        assert(false);
+    }
+
+    return window;
 }
 
 }
