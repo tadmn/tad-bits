@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "tb_Core.h"
+
 #include <choc_SampleBuffers.h>
 
 namespace tb {
@@ -18,7 +20,7 @@ class FifoBuffer {
     choc::buffer::ChannelArrayView<T> getBuffer() const noexcept { return mBuffer.getStart(mSize); }
 
     choc::buffer::ChannelArrayView<T> push(choc::buffer::ChannelArrayView<T> const& buffer) {
-        assert(buffer.getNumChannels() == mBuffer.getNumChannels());
+        tb_assert(buffer.getNumChannels() == mBuffer.getNumChannels());
 
         const auto framesToWrite = std::min(freeSpace(), static_cast<int>(buffer.getNumFrames()));
         choc::buffer::copyIntersection(mBuffer.fromFrame(mSize), buffer.getStart(framesToWrite));

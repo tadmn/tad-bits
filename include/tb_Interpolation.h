@@ -1,15 +1,15 @@
 
 #pragma once
 
+#include "tb_Core.h"
 #include "tb_Geometry.h"
 
 #include <vector>
-#include <cassert>
 
 namespace tb {
 
 inline void catmullRomSpline(const std::vector<Point>& inLine, std::vector<Point>& outLine) {
-    assert(outLine.size() > inLine.size() + 4);
+    tb_assert(outLine.size() > inLine.size() + 4);
 
     auto outIdx = 0;
 

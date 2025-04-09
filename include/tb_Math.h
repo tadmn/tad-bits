@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "tb_Core.h"
+
 #include <cmath>
 
 namespace tb {
@@ -17,9 +19,9 @@ template<typename T>
 
 template<typename T>
 [[nodiscard]] T to0to1(T value, T inMin, T inMax) {
-    assert(inRange(value, inMin, inMax));
+    tb_assert(inRange(value, inMin, inMax));
     value = (value - inMin) / (inMax - inMin);
-    assert(is0to1(value));
+    tb_assert(is0to1(value));
     return value;
 }
 

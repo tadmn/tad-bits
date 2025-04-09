@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "tb_Core.h"
+
 #include <cmath>
 #include <vector>
 #include <numbers>
@@ -37,7 +39,7 @@ std::vector<T> window(WindowType windowType, int size) {
         for (size_t i = 0; i < window.size(); ++i)
             window[i] = static_cast<T>(0.54 - 0.46 * std::cos((2.0 * i * pi) / (window.size() - 1)));
     } else {
-        assert(false);
+        tb_assert(false);
     }
 
     return window;
