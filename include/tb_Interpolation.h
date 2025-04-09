@@ -49,7 +49,7 @@ inline void catmullRomSpline(const std::vector<Point>& inLine, std::vector<Point
                 (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
             );
 
-            outLine[outIdx++] = {x, y};
+            outLine[outIdx++] = Point(x, y);
         }
     }
 

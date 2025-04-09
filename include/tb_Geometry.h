@@ -4,8 +4,8 @@
 namespace tb {
 
 struct Point {
-    double x = 0.0;
-    double y = 0.0;
+    float x = 0.f;
+    float y = 0.f;
 };
 
 }
