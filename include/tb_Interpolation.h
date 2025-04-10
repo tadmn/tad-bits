@@ -9,7 +9,8 @@
 namespace tb {
 
 inline void catmullRomSpline(const std::vector<Point>& inLine, std::vector<Point>& outLine) {
-    tb_assert(outLine.size() > inLine.size() + 4);
+    if (inLine.empty() || outLine.empty() || outLine.size() < inLine.size())
+        return;
 
     auto outIdx = 0;
 
