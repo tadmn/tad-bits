@@ -2,7 +2,7 @@
 #pragma once
 
 #include "tb_Core.h"
-#include "tb_Geometry.h"
+#include "tb_Space.h"
 
 #include <vector>
 
