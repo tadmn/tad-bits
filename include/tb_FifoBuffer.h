@@ -47,6 +47,10 @@ class FifoBuffer {
   private:
     choc::buffer::ChannelArrayBuffer<T> mBuffer;
     int mSize = 0;
+
+public:
+    FifoBuffer(const FifoBuffer&) = delete;
+    FifoBuffer& operator=(const FifoBuffer&) = delete;
 };
 
 }
