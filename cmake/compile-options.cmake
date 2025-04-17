@@ -73,7 +73,6 @@ function(add_compiler_warnings TARGET)
           -Wswitch-enum
           -Wpedantic
           -Wdeprecated
-          -Wfloat-equal
           -Wmissing-field-initializers
           $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
           -Wzero-as-null-pointer-constant
