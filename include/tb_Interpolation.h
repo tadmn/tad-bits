@@ -8,6 +8,10 @@
 
 namespace tb::catmullRom {
 
+enum class Type {
+    Uniform
+};
+
 /**
  * @brief Calculates the size needed for the output line when calling `spline`
  *
@@ -41,53 +45,57 @@ inline int outLineSize(int inLineSize, int interpolationSteps) {
  *
  * @note The size of outLine must match the value returned by outLineSize() for the same inputs
  */
-inline void spline(std::vector<Point>& outLine, const std::vector<Point>& inLine, int interpolationSteps) {
+inline void spline(std::vector<Point>& outLine, const std::vector<Point>& inLine,
+                   int interpolationSteps, Type type) {
     tb_assert(inLine.size() >= 4);
     tb_assert(outLine.size() == outLineSize(inLine.size(), interpolationSteps));
     tb_assert(interpolationSteps > 0);
 
-    int outIdx = 0;
+    if (type == Type::Uniform) {
+        int outIdx = 0;
 
-    // Iterate through points to create interpolated segments
-    for (int i = 1; i + 2 < inLine.size(); i++) {
-        // Determine control points
-        const auto p0 = inLine[i - 1];
-        const auto p1 = inLine[i];
-        const auto p2 = inLine[i + 1];
-        const auto p3 = inLine[i + 2];
+        // Iterate through points to create interpolated segments
+        for (int i = 1; i + 2 < inLine.size(); i++) {
+            // Determine control points
+            const auto p0 = inLine[i - 1];
+            const auto p1 = inLine[i];
+            const auto p2 = inLine[i + 1];
+            const auto p3 = inLine[i + 2];
 
-        outLine[outIdx] = p1; // Add existing point
-        outIdx++;
-
-        // Interpolate between p1 and p2
-        for (int j = 1; j <= interpolationSteps && outIdx < outLine.size(); ++j) {
-            const auto t = static_cast<double>(j) / (interpolationSteps + 1);
-
-            // Catmull-Rom spline calculation
-            const auto t2 = t * t;
-            const auto t3 = t2 * t;
-
-            const auto x = 0.5 * (
-                (2.0 * p1.x) +
-                (-p0.x + p2.x) * t +
-                (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2 +
-                (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3
-            );
-
-            const auto y = 0.5 * (
-                (2.0 * p1.y) +
-                (-p0.y + p2.y) * t +
-                (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2 +
-                (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
-            );
-
-            outLine[outIdx] = Point(x, y);
+            outLine[outIdx] = p1; // Add existing point
             outIdx++;
-        }
-    }
 
-    tb_assert(outIdx == outLine.size() - 1);
-    outLine[outIdx] = inLine[inLine.size() - 2]; // Add last existing point
+            // Interpolate between p1 and p2
+            for (int j = 1; j <= interpolationSteps && outIdx < outLine.size(); ++j) {
+                const auto t = static_cast<double>(j) / (interpolationSteps + 1);
+
+                // Catmull-Rom spline calculation
+                const auto t2 = t * t;
+                const auto t3 = t2 * t;
+
+                const auto x = 0.5 * (
+                    (2.0 * p1.x) +
+                    (-p0.x + p2.x) * t +
+                    (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2 +
+                    (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3
+                );
+
+                const auto y = 0.5 * (
+                    (2.0 * p1.y) +
+                    (-p0.y + p2.y) * t +
+                    (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2 +
+                    (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
+                );
+
+                outLine[outIdx] = Point(x, y);
+                outIdx++;
+            }
+        }
+
+        tb_assert(outIdx == outLine.size() - 1);
+        outLine[outIdx] = inLine[inLine.size() - 2]; // Add last existing point
+    } else
+        tb_assert(false); // Not implemented/supported
 }
 
 }
