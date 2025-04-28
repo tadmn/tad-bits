@@ -36,6 +36,7 @@ inline int outLineSize(int inLineSize, int interpolationSteps) {
  *                calculated by calling outLineSize()
  * @param inLine Input vector containing the control points (must have >= 4 points)
  * @param interpolationSteps Number of points to insert between each pair of original points
+ * @param type The sub-variant of Catmull-Rom to use
  *
  * @details This function creates a smooth curve that passes through all control points
  *          except the first and last ones, which are only used to determine the tangents
