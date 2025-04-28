@@ -8,6 +8,11 @@
 
 namespace tb::catmullRom {
 
+enum class Type {
+    Uniform,
+    Centripetal
+};
+
 /**
  * @brief Calculates the size needed for the output line when calling `spline`
  *
@@ -21,7 +26,7 @@ namespace tb::catmullRom {
 inline int outLineSize(int inLineSize, int interpolationSteps) {
     tb_assert(inLineSize >= 4);
     tb_assert(interpolationSteps > 0);
-    inLineSize -= 2; // The control points on either end will not be used
+    inLineSize -= 2;  // The control points on either end will not be used
     return inLineSize + (inLineSize - 1) * interpolationSteps;
 }
 
@@ -41,7 +46,7 @@ inline int outLineSize(int inLineSize, int interpolationSteps) {
  *
  * @note The size of outLine must match the value returned by outLineSize() for the same inputs
  */
-inline void spline(std::vector<Point>& outLine, const std::vector<Point>& inLine, int interpolationSteps) {
+inline void spline(std::vector<Point>& outLine, const std::vector<Point>& inLine, int interpolationSteps, Type type) {
     tb_assert(inLine.size() >= 4);
     tb_assert(outLine.size() == outLineSize(inLine.size(), interpolationSteps));
     tb_assert(interpolationSteps > 0);
@@ -60,29 +65,68 @@ inline void spline(std::vector<Point>& outLine, const std::vector<Point>& inLine
         outIdx++;
 
         // Interpolate between p1 and p2
-        for (int j = 1; j <= interpolationSteps && outIdx < outLine.size(); ++j) {
-            const auto t = static_cast<double>(j) / (interpolationSteps + 1);
+        if (type == Type::Uniform) {
+            for (int j = 1; j <= interpolationSteps && outIdx < outLine.size(); ++j) {
+                const auto t = static_cast<double>(j) / (interpolationSteps + 1);
 
-            // Catmull-Rom spline calculation
-            const auto t2 = t * t;
-            const auto t3 = t2 * t;
+                // Catmull-Rom spline calculation
+                const auto t2 = t * t;
+                const auto t3 = t2 * t;
 
-            const auto x = 0.5 * (
-                (2.0 * p1.x) +
-                (-p0.x + p2.x) * t +
-                (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2 +
-                (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3
-            );
+                const auto x = 0.5 * (
+                    (2.0 * p1.x) +
+                    (-p0.x + p2.x) * t +
+                    (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2 +
+                    (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3
+                );
 
-            const auto y = 0.5 * (
-                (2.0 * p1.y) +
-                (-p0.y + p2.y) * t +
-                (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2 +
-                (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
-            );
+                const auto y = 0.5 * (
+                    (2.0 * p1.y) +
+                    (-p0.y + p2.y) * t +
+                    (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2 +
+                    (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
+                );
 
-            outLine[outIdx] = Point(x, y);
-            outIdx++;
+                outLine[outIdx] = Point(x, y);
+                outIdx++;
+            }
+        } else if (type == Type::Centripetal) {
+            constexpr auto alpha = 0.5;
+            constexpr auto tension = 0.0;
+
+            auto t01 = pow(distance(p0, p1), alpha);
+            auto t12 = pow(distance(p1, p2), alpha);
+            auto t23 = pow(distance(p2, p3), alpha);
+
+            Point m1 ((1.0f - tension) * (p2.x - p1.x + t12 * ((p1.x - p0.x) / t01 - (p2.x - p0.x) / (t01 + t12))),
+                      (1.0f - tension) * (p2.y - p1.y + t12 * ((p1.y - p0.y) / t01 - (p2.y - p0.y) / (t01 + t12))));
+
+            Point m2 ((1.0f - tension) * (p2.x - p1.x + t12 * ((p3.x - p2.x) / t23 - (p3.x - p1.x) / (t12 + t23))),
+                      (1.0f - tension) * (p2.y - p1.y + t12 * ((p3.y - p2.y) / t23 - (p3.y - p1.y) / (t12 + t23))));
+
+            Point a (2.0f * (p1.x - p2.x) + m1.x + m2.x,
+                     2.0f * (p1.y - p2.y) + m1.y + m2.y);
+
+            Point b (-3.0f * (p1.x - p2.x) - m1.x - m1.x - m2.x,
+                     -3.0f * (p1.y - p2.y) - m1.y - m1.y - m2.y);
+
+            Point c = m1;
+            Point d = p1;
+
+            for (int j = 1; j <= interpolationSteps && outIdx < outLine.size(); ++j) {
+                const auto t = static_cast<double>(j) / (interpolationSteps + 1);
+                auto t2 = t * t;
+                auto t3 = t2 * t;
+
+                auto x = a.x * t3 + b.x * t2 + c.x * t + d.x;
+                auto y = a.y * t3 + b.y * t2 + c.y * t + d.y;
+
+                outLine[outIdx] = Point(x, y);
+                outIdx++;
+            }
+
+        } else {
+            tb_assert(false);
         }
     }
 
