@@ -13,7 +13,7 @@ inline choc::buffer::ChannelArrayBuffer<float> makeSineWave(float frequency, dou
     auto buffer = choc::buffer::ChannelArrayBuffer<float>(numChannels, numSamples);
 
     // Fill all channels with the same sine wave
-    choc::buffer::setAllSamples(buffer, [=](int channel, int frame) {
+    choc::buffer::setAllSamples(buffer, [=](int /*channel*/, int frame) {
         return amplitude * std::sin(2.0 * std::numbers::pi * frequency * frame / sampleRate);
     });
 
