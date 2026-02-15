@@ -51,6 +51,37 @@ public:
     SampleRateConverter& operator=(const SampleRateConverter&) = delete;
 
     /**
+     * Calculate the latency introduced by the sample rate converter.
+     * 
+     * This method determines how many input samples must be processed before
+     * the converter begins producing non-zero output. This is useful for
+     * compensating for algorithmic delay in real-time audio applications.
+     * 
+     * @param quality The converter quality setting to measure
+     * @param inSampleRate Input sample rate in Hz
+     * @param outSampleRate Output sample rate in Hz
+     * @return Number of input samples of latency at the input sample rate
+     */
+    static int getLatencyInSamples(Quality quality, double inSampleRate, double outSampleRate) {
+        SampleRateConverter src(1, quality);
+        
+        // Create i/o buffers, with 1 sample each
+        choc::buffer::ChannelArrayBuffer<float> input(1, 1);
+        choc::buffer::ChannelArrayBuffer<float> output(1, 1);
+
+        for (int i = 0;; ++i) {
+            auto [in, out] = src.process(input, output, inSampleRate, outSampleRate);
+            if (out.getNumFrames() > 0)
+                return i;
+        }
+    }
+
+    struct Result {
+        choc::buffer::ChannelArrayView<float> remainingInput;
+        choc::buffer::ChannelArrayView<float> actualOutput;
+    };
+
+    /**
      * Process audio using choc::buffer::ChannelArrayView (non-interleaved/planar)
      * @param input Input buffer view (planar: separate channel buffers)
      * @param output Output buffer view (planar, must be pre-allocated)
@@ -59,20 +90,15 @@ public:
      * @param endOfInput True if this is the last buffer
      * @return Number of frames actually written to output
      */
-    int process(choc::buffer::ChannelArrayView<float> input,
-                choc::buffer::ChannelArrayView<float> output,
-                double inSampleRate,
-                double outSampleRate,
-                bool endOfInput = false) {
-        tb_assert(!mConverters.empty() && inSampleRate > 0.0 && outSampleRate > 0.0);
-        tb_assert(input.getNumChannels()  == getNumChannels() &&
+    Result process(choc::buffer::ChannelArrayView<float> input, choc::buffer::ChannelArrayView<float> output,
+                   double inSampleRate, double outSampleRate, bool endOfInput = false) {
+        tb_assert(! mConverters.empty() && inSampleRate > 0.0 && outSampleRate > 0.0);
+        tb_assert(input.getNumChannels() == getNumChannels() &&
                   output.getNumChannels() == getNumChannels());
 
-        uint32_t framesGenerated = 0;
-
         // Process each channel independently
+        SRC_DATA srcData = {};
         for (uint32_t ch = 0; ch < input.getNumChannels(); ++ch) {
-            SRC_DATA srcData;
             srcData.data_in = input.getChannel(ch).data.data;
             srcData.input_frames = static_cast<long>(input.getNumFrames());
             srcData.data_out = output.getChannel(ch).data.data;
@@ -84,15 +110,10 @@ public:
             if (error != 0) {
                 tb_throwMsgIf(error != 0, std::string("SRC processing error: ") + src_strerror(error));
             }
-
-            if (ch == 0) {
-                framesGenerated = srcData.output_frames_gen;
-            } else if (srcData.output_frames_gen != framesGenerated) {
-                tb_assert(srcData.output_frames_gen == framesGenerated);
-            }
         }
 
-        return static_cast<int>(framesGenerated);
+        return { .remainingInput = input.fromFrame(srcData.input_frames_used),
+                 .actualOutput = output.getStart(srcData.output_frames_gen) };
     }
 
     /**

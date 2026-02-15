@@ -65,16 +65,16 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, expectedOutputFrames);
 
         // Process
-        int framesGenerated = converter.process(
-            inputBuffer.getView(),
-            outputBuffer.getView(),
+        auto [in, out] = converter.process(
+            inputBuffer,
+            outputBuffer,
             inputSampleRate,
             outputSampleRate,
             true
         );
 
-        REQUIRE(framesGenerated > 0);
-        REQUIRE(framesGenerated <= expectedOutputFrames);
+        REQUIRE(out.getNumFrames() > 0);
+        REQUIRE(out.getNumFrames() <= expectedOutputFrames);
     }
 
     SECTION("Downsampling 48kHz to 44.1kHz") {
@@ -89,7 +89,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         const int expectedOutputFrames = static_cast<int>(std::ceil(inputFrames * outputSampleRate / inputSampleRate));
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, expectedOutputFrames);
 
-        int framesGenerated = converter.process(
+        auto [in, out] = converter.process(
             inputBuffer.getView(),
             outputBuffer.getView(),
             inputSampleRate,
@@ -97,8 +97,8 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
             true
         );
 
-        REQUIRE(framesGenerated > 0);
-        REQUIRE(framesGenerated <= expectedOutputFrames);
+        REQUIRE(out.getNumFrames() > 0);
+        REQUIRE(out.getNumFrames() <= expectedOutputFrames);
     }
 
     SECTION("Processing DC signal preserves value") {
@@ -115,7 +115,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         const int outputFrames = 109; // ~100 * 48000/44100
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
-        int framesGenerated = converter.process(
+        auto [in, out] = converter.process(
             inputBuffer.getView(),
             outputBuffer.getView(),
             44100.0,
@@ -124,7 +124,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         );
 
         // Check that DC value is preserved (with small tolerance)
-        for (int i = 0; i < framesGenerated; ++i) {
+        for (int i = 0; i < out.getNumFrames(); ++i) {
             REQUIRE(outputBuffer.getSample(0, i) == Approx(dcValue).margin(0.01f));
         }
     }
@@ -153,7 +153,7 @@ TEST_CASE("SampleRateConverter - Processing stereo signal", "[SampleRateConverte
         const int outputFrames = 109;
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(2, outputFrames);
 
-        int framesGenerated = converter.process(
+        auto [in, out] = converter.process(
             inputBuffer.getView(),
             outputBuffer.getView(),
             inputSampleRate,
@@ -161,12 +161,12 @@ TEST_CASE("SampleRateConverter - Processing stereo signal", "[SampleRateConverte
             true
         );
 
-        REQUIRE(framesGenerated > 0);
-        REQUIRE(framesGenerated <= outputFrames);
+        REQUIRE(out.getNumFrames() > 0);
+        REQUIRE(out.getNumFrames() <= outputFrames);
 
         // Verify channels are different (not copied)
         bool channelsDifferent = false;
-        for (int i = 0; i < framesGenerated; ++i) {
+        for (int i = 0; i < out.getNumFrames(); ++i) {
             if (std::abs(outputBuffer.getSample(0, i) - outputBuffer.getSample(1, i)) > 0.01f) {
                 channelsDifferent = true;
                 break;
@@ -193,7 +193,7 @@ TEST_CASE("SampleRateConverter - Reset", "[SampleRateConverter]") {
         choc::buffer::ChannelArrayBuffer<float> outputBuffer2(1, outputFrames);
 
         // Process once
-        int frames1 = converter.process(
+        auto [in1, out1] = converter.process(
             inputBuffer.getView(),
             outputBuffer1.getView(),
             44100.0,
@@ -204,7 +204,7 @@ TEST_CASE("SampleRateConverter - Reset", "[SampleRateConverter]") {
         // Reset and process again with same input
         converter.reset();
 
-        int frames2 = converter.process(
+        auto [in2, out2] = converter.process(
             inputBuffer.getView(),
             outputBuffer2.getView(),
             44100.0,
@@ -213,10 +213,10 @@ TEST_CASE("SampleRateConverter - Reset", "[SampleRateConverter]") {
         );
 
         // Should generate same number of frames
-        REQUIRE(frames1 == frames2);
+        REQUIRE(out1.getNumFrames() == out2.getNumFrames());
 
         // Outputs should be similar (since we reset the state)
-        for (int i = 0; i < std::min(frames1, frames2); ++i) {
+        for (int i = 0; i < std::min(out1.getNumFrames(), out2.getNumFrames()); ++i) {
             REQUIRE(outputBuffer1.getSample(0, i) == Approx(outputBuffer2.getSample(0, i)).margin(0.0001f));
         }
     }
@@ -233,7 +233,7 @@ TEST_CASE("SampleRateConverter - Edge cases", "[SampleRateConverter]") {
         const int outputFrames = 10;
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
-        int framesGenerated = converter.process(
+        auto [in, out] = converter.process(
             inputBuffer.getView(),
             outputBuffer.getView(),
             44100.0,
@@ -241,7 +241,7 @@ TEST_CASE("SampleRateConverter - Edge cases", "[SampleRateConverter]") {
             false
         );
 
-        REQUIRE(framesGenerated >= 0);
+        REQUIRE(out.getNumFrames() >= 0);
     }
 
     SECTION("Multiple consecutive processing calls") {
@@ -254,7 +254,7 @@ TEST_CASE("SampleRateConverter - Edge cases", "[SampleRateConverter]") {
             auto inputBuffer = makeSineWave(440.0, 44100.0, 1, inputFrames);
             choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
-            int framesGenerated = converter.process(
+            auto [in, out] = converter.process(
                 inputBuffer.getView(),
                 outputBuffer.getView(),
                 44100.0,
@@ -262,8 +262,8 @@ TEST_CASE("SampleRateConverter - Edge cases", "[SampleRateConverter]") {
                 false
             );
 
-            REQUIRE(framesGenerated > 0);
-            REQUIRE(framesGenerated <= outputFrames);
+            REQUIRE(out.getNumFrames() > 0);
+            REQUIRE(out.getNumFrames() <= outputFrames);
         }
     }
 }
@@ -278,7 +278,7 @@ TEST_CASE("SampleRateConverter - Different quality settings produce output", "[S
         SampleRateConverter converter(1, quality);
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
-        int framesGenerated = converter.process(
+        auto [in, out] = converter.process(
             inputBuffer.getView(),
             outputBuffer.getView(),
             44100.0,
@@ -286,7 +286,7 @@ TEST_CASE("SampleRateConverter - Different quality settings produce output", "[S
             true
         );
 
-        REQUIRE(framesGenerated > 0);
+        REQUIRE(out.getNumFrames() > 0);
     };
 
     SECTION("BestQuality") { testQuality(SampleRateConverter::Quality::BestQuality); }
@@ -294,4 +294,89 @@ TEST_CASE("SampleRateConverter - Different quality settings produce output", "[S
     SECTION("Fastest") { testQuality(SampleRateConverter::Quality::Fastest); }
     SECTION("ZeroOrderHold") { testQuality(SampleRateConverter::Quality::ZeroOrderHold); }
     SECTION("Linear") { testQuality(SampleRateConverter::Quality::Linear); }
+}
+
+TEST_CASE("SampleRateConverter - getLatencyInSamples", "[SampleRateConverter]") {
+    SECTION("BestQuality - various sample rates") {
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 44100.0, 48000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 48000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 44100.0, 96000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 96000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 44100.0, 44100.0) >= 0);
+    }
+
+    SECTION("MediumQuality - various sample rates") {
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 44100.0, 48000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 48000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 44100.0, 96000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 96000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 44100.0, 44100.0) >= 0);
+    }
+
+    SECTION("Fastest - various sample rates") {
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 44100.0, 48000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 48000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 44100.0, 96000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 96000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 44100.0, 44100.0) >= 0);
+    }
+
+    SECTION("ZeroOrderHold - various sample rates") {
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::ZeroOrderHold, 44100.0, 48000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::ZeroOrderHold, 48000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::ZeroOrderHold, 44100.0, 96000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::ZeroOrderHold, 96000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::ZeroOrderHold, 44100.0, 44100.0) >= 0);
+    }
+
+    SECTION("Linear - various sample rates") {
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Linear, 44100.0, 48000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Linear, 48000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Linear, 44100.0, 96000.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Linear, 96000.0, 44100.0) >= 0);
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Linear, 44100.0, 44100.0) >= 0);
+    }
+
+    SECTION("Additional sample rate conversions") {
+        // 22.05kHz to 48kHz (more than 2x upsampling)
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 22050.0, 48000.0) >= 0);
+
+        // 192kHz to 44.1kHz (more than 4x downsampling)
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::BestQuality, 192000.0, 44100.0) >= 0);
+
+        // 48kHz to 96kHz (2x upsampling)
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::MediumQuality, 48000.0, 96000.0) >= 0);
+
+        // 88.2kHz to 44.1kHz (2x downsampling)
+        REQUIRE(SampleRateConverter::getLatencyInSamples(
+            SampleRateConverter::Quality::Fastest, 88200.0, 44100.0) >= 0);
+    }
 }
