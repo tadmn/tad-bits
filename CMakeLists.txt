@@ -10,6 +10,7 @@ option(INCLUDE_RESAMPLER "Include libsamplerate wrapper" ON)
 CPMAddPackage("gh:tadmn/choc#2f5b8627708ff4702b4fb6646fddf0c5f4a52007")
 
 add_library(tad-bits INTERFACE
+  include/tb_AudioFeatures.h
   include/tb_Core.h
   include/tb_DspUtilities.h
   include/tb_FifoBuffer.h
@@ -40,7 +41,7 @@ endif()
 if (BUILD_TESTS)
   include(cmake/compile-options.cmake)
   CPMAddPackage("gh:catchorg/Catch2@3.5.2")
-  add_executable(tad-bits-testrunner tests/test_SampleRateConverter.cpp)
+  add_executable(tad-bits-testrunner tests/test_SampleRateConverter.cpp tests/test_AudioFeatures.cpp)
   target_link_libraries(tad-bits-testrunner PRIVATE tad-bits Catch2::Catch2WithMain)
   add_compiler_warnings(tad-bits-testrunner)
 endif()
