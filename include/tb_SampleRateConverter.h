@@ -103,7 +103,7 @@ public:
             srcData.input_frames = static_cast<long>(input.getNumFrames());
             srcData.data_out = output.getChannel(ch).data.data;
             srcData.output_frames = static_cast<long>(output.getNumFrames());
-            srcData.src_ratio = inSampleRate / outSampleRate;
+            srcData.src_ratio = outSampleRate / inSampleRate;
             srcData.end_of_input = endOfInput ? 1 : 0;
 
             const int error = src_process(mConverters[ch].get(), &srcData);
