@@ -26,6 +26,12 @@ public:
 private:
     std::string mMessage;
 };
+
+struct Result {
+    std::string msg;
+    explicit operator bool() const { return msg.empty(); }
+};
+
 }
 
 #define tb_throw(_MSG) throw tb::Error(_MSG)
