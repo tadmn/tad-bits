@@ -96,6 +96,14 @@ public:
         tb_assert(input.getNumChannels() == getNumChannels() &&
                   output.getNumChannels() == getNumChannels());
 
+        if (outSampleRate == inSampleRate) {
+            const auto framesToCopy = std::min(input.getNumFrames(), output.getNumFrames());
+            choc::buffer::copy(output.getStart(framesToCopy), input.getStart(framesToCopy));
+
+            return { .remainingInput = input.fromFrame(framesToCopy),
+                     .actualOutput = output.getStart(framesToCopy) };
+        }
+
         // Process each channel independently
         SRC_DATA srcData = {};
         for (uint32_t ch = 0; ch < input.getNumChannels(); ++ch) {
