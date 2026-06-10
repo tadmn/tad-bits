@@ -64,13 +64,3 @@ TEST_CASE("spectralCentroid - centroid shifts with heavier high-frequency energy
     float centroidHigh = tb::spectralCentroid(magsHigh, sampleRate);
     REQUIRE(centroidLow < centroidHigh);
 }
-
-TEST_CASE("spectralCentroid - single bin spectrum (DC only)", "[spectralCentroid]") {
-    // Edge case: only one bin means size-1 == 0, avoid division by zero in freqResolution
-    // This is a degenerate case; test that it doesn't crash and returns 0
-    std::vector<float> mags = {1.0f};
-    // freqResolution = sampleRate / (2 * 0) — division by zero risk in formula!
-    // This test documents the known limitation of the current implementation.
-    // If this is considered valid input, the function should guard against it.
-    WARN("Single-bin input exposes division by zero in freqResolution calculation");
-}

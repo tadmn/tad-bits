@@ -5,7 +5,7 @@ include(cmake/CPM.cmake)
 project(tad-bits)
 
 option(BUILD_TESTS "Build unit test executable" OFF)
-option(INCLUDE_RESAMPLER "Include libsamplerate wrapper" ON)
+option(INCLUDE_RESAMPLER "Include libsamplerate wrapper" OFF)
 
 CPMAddPackage("gh:tadmn/choc#2f5b8627708ff4702b4fb6646fddf0c5f4a52007")
 
