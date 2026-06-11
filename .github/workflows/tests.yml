@@ -18,6 +18,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         include_resampler: [ON, OFF]
+        build_type: [Debug, Release]
         include:
           - os: macos-latest
             arch: arm64
@@ -27,25 +28,24 @@ jobs:
             arch: x86_64
 
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} / INCLUDE_RESAMPLER=${{ matrix.include_resampler }}
+    name: ${{ matrix.os }} / ${{ matrix.build_type }} / INCLUDE_RESAMPLER=${{ matrix.include_resampler }}
 
     steps:
-      # Setup MSVC toolchain and developer command prompt (Windows)
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: ilammy/msvc-dev-cmd@v1 # Setup MSVC toolchain and developer command prompt (Windows)
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configure
         run: >
-          cmake -B build -S . -G Ninja
+          cmake -B build-${{ matrix.build_type }} -S . -G Ninja
           -DBUILD_TESTS=ON
           -DINCLUDE_RESAMPLER=${{ matrix.include_resampler }}
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
 
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build-${{ matrix.build_type }} --config ${{ matrix.build_type }} --parallel
 
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
+        run: ctest --test-dir build-${{ matrix.build_type }} -C ${{ matrix.build_type }} --output-on-failure
