@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include_resampler: [ON, OFF]
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: windows-latest
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} / INCLUDE_RESAMPLER=${{ matrix.include_resampler }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28'
+
+      - name: Configure
+        run: >
+          cmake -B build -S .
+          -DBUILD_TESTS=ON
+          -DINCLUDE_RESAMPLER=${{ matrix.include_resampler }}
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
