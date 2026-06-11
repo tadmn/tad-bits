@@ -22,15 +22,15 @@ jobs:
     name: ${{ matrix.os }} / INCLUDE_RESAMPLER=${{ matrix.include_resampler }}
 
     steps:
-      - uses: actions/checkout@v4
+      # Setup MSVC toolchain and developer command prompt (Windows)
+      - uses: ilammy/msvc-dev-cmd@v1
 
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28'
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Configure
         run: >
-          cmake -B build -S .
+          cmake -B build -S . -G Ninja
           -DBUILD_TESTS=ON
           -DINCLUDE_RESAMPLER=${{ matrix.include_resampler }}
           -DCMAKE_BUILD_TYPE=Release
