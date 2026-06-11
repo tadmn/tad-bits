@@ -3,7 +3,7 @@
 
 #include "tb_Core.h"
 
-#include <choc_SampleBuffers.h>
+#include <choc/audio/choc_SampleBuffers.h>
 
 namespace tb {
 
