@@ -71,7 +71,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         auto inputBuffer = makeSineWave(frequency, inputSampleRate, inputFrames);
 
         // Calculate expected output size
-        const int expectedOutputFrames = static_cast<int>(std::ceil(inputFrames * outputSampleRate / inputSampleRate));
+        const uint32_t expectedOutputFrames = std::ceil(inputFrames * outputSampleRate / inputSampleRate);
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, expectedOutputFrames);
 
         // Process
@@ -96,7 +96,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
 
         auto inputBuffer = makeSineWave(440.0, inputSampleRate, inputFrames);
 
-        const int expectedOutputFrames = static_cast<int>(std::ceil(inputFrames * outputSampleRate / inputSampleRate));
+        const uint32_t expectedOutputFrames = std::ceil(inputFrames * outputSampleRate / inputSampleRate);
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, expectedOutputFrames);
 
         auto [in, out] = converter.process(
@@ -122,7 +122,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
             inputBuffer.getSample(0, i) = dcValue;
         }
 
-        const int outputFrames = 109; // ~100 * 48000/44100
+        const uint32_t outputFrames = 109; // ~100 * 48000/44100
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
         auto [in, out] = converter.process(
@@ -151,16 +151,14 @@ TEST_CASE("SampleRateConverter - Processing stereo signal", "[SampleRateConverte
         choc::buffer::ChannelArrayBuffer<float> inputBuffer(2, inputFrames);
 
         // Fill left channel with 440Hz sine
-        for (int i = 0; i < inputFrames; ++i) {
-            inputBuffer.getSample(0, i) = std::sin(2.0 * M_PI * 440.0 * i / inputSampleRate);
-        }
+        auto leftSine = makeSineWave(440.0, inputSampleRate, inputFrames);
+        choc::buffer::copy(inputBuffer.getChannelRange({ 0, 1 }), leftSine);
 
         // Fill right channel with 880Hz sine
-        for (int i = 0; i < inputFrames; ++i) {
-            inputBuffer.getSample(1, i) = std::sin(2.0 * M_PI * 880.0 * i / inputSampleRate);
-        }
+        auto rightSine = makeSineWave(880.0, inputSampleRate, inputFrames);
+        choc::buffer::copy(inputBuffer.getChannelRange({ 1, 2 }), rightSine);
 
-        const int outputFrames = 109;
+        const uint32_t outputFrames = 109;
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(2, outputFrames);
 
         auto [in, out] = converter.process(
