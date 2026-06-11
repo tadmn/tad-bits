@@ -2,7 +2,7 @@
 #include "tb_DspUtilities.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include <choc_SampleBuffers.h>
+#include <choc/audio/choc_SampleBuffers.h>
 #include <cmath>
 
 using namespace tb;

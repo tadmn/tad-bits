@@ -7,7 +7,7 @@ project(tad-bits)
 option(BUILD_TESTS "Build unit test executable" OFF)
 option(INCLUDE_RESAMPLER "Include libsamplerate wrapper" OFF)
 
-CPMAddPackage("gh:tadmn/choc#2f5b8627708ff4702b4fb6646fddf0c5f4a52007")
+CPMAddPackage("gh:tadmn/choc#5685fb59db9e60d31a35df7bff0ce7967beaaf25")
 
 add_library(tad-bits INTERFACE
   include/tb_AudioFeatures.h

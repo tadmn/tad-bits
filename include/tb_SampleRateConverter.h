@@ -2,7 +2,7 @@
 
 #include "tb_Core.h"
 #include <samplerate.h>
-#include <choc_SampleBuffers.h>
+#include <choc/audio/choc_SampleBuffers.h>
 #include <memory>
 #include <vector>
 

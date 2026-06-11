@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <choc_SampleBuffers.h>
+#include <choc/audio/choc_SampleBuffers.h>
 #include <numbers>
 
 namespace tb {
