@@ -10,7 +10,7 @@ using Catch::Approx;
 
 namespace {
 
-choc::buffer::ChannelArrayBuffer<float> makeSineWave(double frequency, double sampleRate, uint numFrames) {
+choc::buffer::ChannelArrayBuffer<float> makeSineWave(double frequency, double sampleRate, uint32_t numFrames) {
     return choc::oscillator::createChannelArraySine<float>(
         { .numChannels = 1, .numFrames = numFrames },
         frequency, sampleRate);
