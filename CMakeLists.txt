@@ -12,7 +12,6 @@ CPMAddPackage("gh:tadmn/choc#5685fb59db9e60d31a35df7bff0ce7967beaaf25")
 add_library(tad-bits INTERFACE
   include/tb_AudioFeatures.h
   include/tb_Core.h
-  include/tb_DspUtilities.h
   include/tb_FifoBuffer.h
   include/tb_Denormals.h
   include/tb_Interpolation.h

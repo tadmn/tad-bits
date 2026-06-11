@@ -1,12 +1,22 @@
 #include "tb_SampleRateConverter.h"
-#include "tb_DspUtilities.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <choc/audio/choc_SampleBuffers.h>
+#include <choc/audio/choc_Oscillators.h>
 #include <cmath>
 
 using namespace tb;
 using Catch::Approx;
+
+namespace {
+
+choc::buffer::ChannelArrayBuffer<float> makeSineWave(double frequency, double sampleRate, uint numFrames) {
+    return choc::oscillator::createChannelArraySine<float>(
+        { .numChannels = 1, .numFrames = numFrames },
+        frequency, sampleRate);
+}
+
+}
 
 TEST_CASE("SampleRateConverter - Construction", "[SampleRateConverter]") {
     SECTION("Valid construction with different channel counts") {
@@ -58,7 +68,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         const double outputSampleRate = 48000.0;
         const double frequency = 440.0;
 
-        auto inputBuffer = makeSineWave(frequency, inputSampleRate, 1, inputFrames);
+        auto inputBuffer = makeSineWave(frequency, inputSampleRate, inputFrames);
 
         // Calculate expected output size
         const int expectedOutputFrames = static_cast<int>(std::ceil(inputFrames * outputSampleRate / inputSampleRate));
@@ -84,7 +94,7 @@ TEST_CASE("SampleRateConverter - Processing mono signal", "[SampleRateConverter]
         const double inputSampleRate = 48000.0;
         const double outputSampleRate = 44100.0;
 
-        auto inputBuffer = makeSineWave(440.0, inputSampleRate, 1, inputFrames);
+        auto inputBuffer = makeSineWave(440.0, inputSampleRate, inputFrames);
 
         const int expectedOutputFrames = static_cast<int>(std::ceil(inputFrames * outputSampleRate / inputSampleRate));
         choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, expectedOutputFrames);
@@ -186,7 +196,7 @@ TEST_CASE("SampleRateConverter - Reset", "[SampleRateConverter]") {
         SampleRateConverter converter(1, SampleRateConverter::Quality::BestQuality);
 
         const int inputFrames = 100;
-        auto inputBuffer = makeSineWave(440.0, 44100.0, 1, inputFrames);
+        auto inputBuffer = makeSineWave(440.0, 44100.0, inputFrames);
 
         const int outputFrames = 109;
         choc::buffer::ChannelArrayBuffer<float> outputBuffer1(1, outputFrames);
@@ -251,7 +261,7 @@ TEST_CASE("SampleRateConverter - Edge cases", "[SampleRateConverter]") {
         const int outputFrames = 60;
 
         for (int iteration = 0; iteration < 3; ++iteration) {
-            auto inputBuffer = makeSineWave(440.0, 44100.0, 1, inputFrames);
+            auto inputBuffer = makeSineWave(440.0, 44100.0, inputFrames);
             choc::buffer::ChannelArrayBuffer<float> outputBuffer(1, outputFrames);
 
             auto [in, out] = converter.process(
@@ -272,7 +282,7 @@ TEST_CASE("SampleRateConverter - Different quality settings produce output", "[S
     const int inputFrames = 100;
     const int outputFrames = 109;
 
-    auto inputBuffer = makeSineWave(440.0, 44100.0, 1, inputFrames);
+    auto inputBuffer = makeSineWave(440.0, 44100.0, inputFrames);
 
     auto testQuality = [&](SampleRateConverter::Quality quality) {
         SampleRateConverter converter(1, quality);
