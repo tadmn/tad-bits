@@ -1,4 +1,3 @@
-
 if (APPLE)
     enable_language(OBJC)
     enable_language(OBJCXX)
@@ -29,11 +28,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
             $<$<BOOL:${USE_SANITIZER}>:-fsanitize=address>
             $<$<BOOL:${USE_SANITIZER}>:-fsanitize=undefined>
     )
+
     if (NOT APPLE)
         add_compile_options(-march=nehalem)
     endif()
 endif()
-
 
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
@@ -41,12 +40,9 @@ endif()
 
 if (MSVC)
     add_compile_options(
-            # Set source and executable charsets to UTF-8
-            $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
-            # Do *not* use the new, breaking char8_t UTF-8 bits in C++20.
-            $<$<COMPILE_LANGUAGE:CXX>:/Zc:char8_t->
-            # make msvc define __cplulsplus properly
-            $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>
+            $<$<CXX_COMPILER_ID:MSVC>:/utf-8> # Set source and executable charsets to UTF-8
+            $<$<COMPILE_LANGUAGE:CXX>:/Zc:char8_t-> # Do *not* use the new, breaking char8_t UTF-8 bits in C++20.
+            $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> # Make msvc define __cplusplus properly
     )
 endif()
 

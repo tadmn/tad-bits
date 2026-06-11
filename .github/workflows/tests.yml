@@ -1,0 +1,51 @@
+name: tad-bits-testrunner
+
+on:
+  workflow_dispatch: # Lets you run a build from the UI
+  push:
+  pull_request:
+
+# When pushing new commits, cancel any running builds on that branch
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false # Show all errors for each platform (vs. cancel jobs on error)
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include_resampler: [ON, OFF]
+        build_type: [Debug, Release]
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: windows-latest
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} / ${{ matrix.build_type }} / INCLUDE_RESAMPLER=${{ matrix.include_resampler }}
+
+    steps:
+      - uses: ilammy/msvc-dev-cmd@v1 # Setup MSVC toolchain and developer command prompt (Windows)
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -B build-${{ matrix.build_type }} -S . -G Ninja
+          -DBUILD_TESTS=ON
+          -DINCLUDE_RESAMPLER=${{ matrix.include_resampler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+
+      - name: Build
+        run: cmake --build build-${{ matrix.build_type }} --config ${{ matrix.build_type }} --parallel
+
+      - name: Test
+        run: ctest --test-dir build-${{ matrix.build_type }} -C ${{ matrix.build_type }} --output-on-failure

@@ -12,7 +12,6 @@ CPMAddPackage("gh:tadmn/choc#5685fb59db9e60d31a35df7bff0ce7967beaaf25")
 add_library(tad-bits INTERFACE
   include/tb_AudioFeatures.h
   include/tb_Core.h
-  include/tb_DspUtilities.h
   include/tb_FifoBuffer.h
   include/tb_Denormals.h
   include/tb_Interpolation.h
@@ -42,10 +41,17 @@ endif()
 if (BUILD_TESTS)
   include(cmake/compile-options.cmake)
   CPMAddPackage("gh:catchorg/Catch2@3.15.0")
-  add_executable(tad-bits-testrunner
-    tests/test_SampleRateConverter.cpp
+
+  set(TEST_SOURCES
     tests/test_AudioFeatures.cpp
-    tests/test_Denormals.cpp)
+    tests/test_Denormals.cpp
+  )
+
+  if (INCLUDE_RESAMPLER)
+    set(TEST_SOURCES ${TEST_SOURCES} tests/test_SampleRateConverter.cpp)
+  endif()
+
+  add_executable(tad-bits-testrunner ${TEST_SOURCES})
 
   target_link_libraries(tad-bits-testrunner PRIVATE tad-bits Catch2::Catch2WithMain)
   add_compiler_warnings(tad-bits-testrunner)
