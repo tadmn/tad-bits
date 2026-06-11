@@ -41,7 +41,7 @@ endif()
 
 if (BUILD_TESTS)
   include(cmake/compile-options.cmake)
-  CPMAddPackage("gh:catchorg/Catch2@3.5.2")
+  CPMAddPackage("gh:catchorg/Catch2@3.15.0")
   add_executable(tad-bits-testrunner
     tests/test_SampleRateConverter.cpp
     tests/test_AudioFeatures.cpp
