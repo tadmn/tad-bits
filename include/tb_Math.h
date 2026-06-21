@@ -25,6 +25,17 @@ template<typename T>
     return value;
 }
 
+inline bool isPowerOf2(unsigned int n) {
+    if (n == 0) return false;
+    return std::has_single_bit(n);
+}
+
+inline bool isPowerOf2(int n) {
+    // n > 0 handles 0 and negative numbers
+    // n & (n - 1) checks if there is only one bit set
+    return (n > 0) && ((n & (n - 1)) == 0);
+}
+
 template<typename T>
 [[nodiscard]] T closestPowerOf2(T input) {
     if (input <= static_cast<T>(0))
