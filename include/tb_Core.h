@@ -32,6 +32,24 @@ struct Result {
     explicit operator bool() const { return msg.empty(); }
 };
 
+template<typename T>
+class ScopedSetter {
+  public:
+    ScopedSetter(T& original, T newValue) : mTarget(original), mOriginal(std::move(original)) {
+        mTarget = std::move(newValue);
+    }
+
+    ~ScopedSetter() { mTarget = std::move(mOriginal); }
+
+    ScopedSetter(const ScopedSetter&) = delete;
+    ScopedSetter& operator=(const ScopedSetter&) = delete;
+    ScopedSetter(ScopedSetter&&) = delete;  // see note below
+
+  private:
+    T& mTarget;
+    T mOriginal;
+};
+
 }
 
 #define tb_throw(_MSG) throw tb::Error(_MSG)
