@@ -25,11 +25,6 @@ template<typename T>
     return value;
 }
 
-inline bool isPowerOf2(unsigned int n) {
-    if (n == 0) return false;
-    return std::has_single_bit(n);
-}
-
 inline bool isPowerOf2(int n) {
     // n > 0 handles 0 and negative numbers
     // n & (n - 1) checks if there is only one bit set
