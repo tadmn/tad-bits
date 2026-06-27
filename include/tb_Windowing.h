@@ -10,9 +10,9 @@
 namespace tb {
 
 enum class WindowType {
-    Hann,
     BlackmanHarris,
-    Hamming
+    Hamming,
+    Hann,
 };
 
 template <std::floating_point T>
